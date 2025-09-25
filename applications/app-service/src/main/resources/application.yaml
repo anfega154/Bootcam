@@ -1,17 +1,16 @@
-##Spring Configuration
 server:
   port: 8080
 spring:
   application:
-    name: Bootcam
+    name: "Bootcam"
   devtools:
     add-properties: false
   h2:
     console:
       enabled: true
-      path: /h2
+      path: "/h2"
   profiles:
-    include:
+    include: null
 adapters:
   r2dbc:
     host: "localhost"
@@ -20,7 +19,17 @@ adapters:
     schema: "public"
     username: "postgres"
     password: "postgres"
-
 routers:
   paths:
     bootcamp: "/api/v1/bootcamp"
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,prometheus"
+  endpoint:
+    health:
+      probes:
+        enabled: true
+cors:
+  allowed-origins: "http://localhost:4200,http://localhost:8080"
