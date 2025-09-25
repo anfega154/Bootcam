@@ -12,3 +12,15 @@ spring:
       path: /h2
   profiles:
     include:
+adapters:
+  r2dbc:
+    host: "localhost"
+    port: "5434"
+    database: "bootcam"
+    schema: "public"
+    username: "postgres"
+    password: "postgres"
+
+routers:
+  paths:
+    bootcamp: "/api/v1/bootcamp"

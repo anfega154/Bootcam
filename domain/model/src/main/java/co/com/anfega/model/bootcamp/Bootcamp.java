@@ -1,4 +1,4 @@
-package co.com.anfega.model.bootcam;
+package co.com.anfega.model.bootcamp;
 
 import co.com.anfega.model.ability.Ability;
 
@@ -6,33 +6,33 @@ import java.time.LocalDate;
 import java.util.List;
 
 
-public class Bootcam {
+public class Bootcamp {
 
     private Long id;
     private String name;
     private String description;
     private LocalDate releaseDate;
-    private int durationWeeks;
+    private int duration;
     private List<Ability> abilities;
 
-    public Bootcam() {
+    public Bootcamp() {
 
     }
 
-    public Bootcam(String name, String description, LocalDate releaseDate, int durationWeeks, List<Ability> abilities) {
+    public Bootcamp(String name, String description, LocalDate releaseDate, int duration, List<Ability> abilities) {
         this.name = name;
         this.description = description;
         this.releaseDate = releaseDate;
-        this.durationWeeks = durationWeeks;
+        this.duration = duration;
         this.abilities = abilities;
     }
 
-    public Bootcam(Long id, String name, String description, LocalDate releaseDate, int durationWeeks, List<Ability> abilities) {
+    public Bootcamp(Long id, String name, String description, LocalDate releaseDate, int duration, List<Ability> abilities) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.releaseDate = releaseDate;
-        this.durationWeeks = durationWeeks;
+        this.duration = duration;
         this.abilities = abilities;
     }
 
@@ -68,14 +68,6 @@ public class Bootcam {
         this.releaseDate = releaseDate;
     }
 
-    public int getDurationWeeks() {
-        return durationWeeks;
-    }
-
-    public void setDurationWeeks(int durationWeeks) {
-        this.durationWeeks = durationWeeks;
-    }
-
     public List<Ability> getAbilities() {
         return abilities;
     }
@@ -83,4 +75,12 @@ public class Bootcam {
     public void setAbilities(List<Ability> abilities) {
         this.abilities = abilities;
     }
+
+    public int getDuration() {
+        return duration;
+    }
+    public void setDuration(int duration) {
+        this.duration = duration;
+    }
+
 }
