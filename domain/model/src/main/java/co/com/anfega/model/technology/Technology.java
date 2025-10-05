@@ -1,10 +1,15 @@
 package co.com.anfega.model.technology;
 
 
-public class Technology {
+import java.io.Serializable;
+
+public class Technology implements Serializable {
     private Long id;
     private String name;
     private String description;
+
+    public Technology() {
+    }
 
     public Technology(String name, String description) {
         this.name = name;

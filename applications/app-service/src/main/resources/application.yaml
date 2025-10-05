@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 8090
 spring:
   application:
     name: "Bootcam"
@@ -15,7 +15,7 @@ adapters:
   r2dbc:
     host: "localhost"
     port: "5434"
-    database: "bootcam"
+    database: "bootcamp"
     schema: "public"
     username: "postgres"
     password: "postgres"
@@ -33,3 +33,4 @@ management:
         enabled: true
 cors:
   allowed-origins: "http://localhost:4200,http://localhost:8080"
+

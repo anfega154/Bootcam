@@ -2,9 +2,10 @@ package co.com.anfega.model.ability;
 
 import co.com.anfega.model.technology.Technology;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class Ability {
+public class Ability implements Serializable {
     private Long id;
     private String name;
     private String description;

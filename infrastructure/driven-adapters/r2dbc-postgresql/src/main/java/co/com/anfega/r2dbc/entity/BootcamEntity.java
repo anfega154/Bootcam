@@ -20,12 +20,12 @@ public class BootcamEntity {
     @Column("descripcion")
     private String description;
 
-    @Column("fecha_lanzamineto")
+    @Column("fecha_lanzamiento")
     private LocalDate releaseDate;
 
     @Column("duracion")
     private int duration;
 
-    @Column("habilidades")
+    @Column("capacidades")
     private String abilities;
 }
