@@ -40,7 +40,7 @@ public class Handler extends BaseHandler {
     }
 
     public Mono<ServerResponse> listenDeleteBootcampById(ServerRequest request) {
-        Long id = Long.parseLong(request.pathVariable("id"));
+        Long id = Long.parseLong(request.queryParam("id").orElse("0"));
         return bootcampService.deleteBootcamp(id)
                 .then(ok("Bootcamp eliminado con exito"));
     }

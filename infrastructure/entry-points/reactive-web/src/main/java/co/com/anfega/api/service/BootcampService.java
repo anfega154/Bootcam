@@ -62,16 +62,47 @@ public class BootcampService {
                 .flatMap(bootcamp -> {
                     context.setBootcamp(bootcamp);
 
-                    return deleteTechnologies(context)
-                            .then(deleteAbilities(context))
-                            .then(deleteBootcamp(context))
-                            .doOnSuccess(v -> log.info("Saga completada exitosamente para bootcamp {}", bootcampId))
-                            .onErrorResume(e -> {
-                                log.error("Error en la saga de eliminación: {}", e.getMessage(), e);
-                                return compensate(context, e);
+                    return bootcampInputPort.findAllPaginated(0, Integer.MAX_VALUE, null, null, 0)
+                            .flatMap(pageResponse -> {
+                                List<Bootcamp> allBootcamps = pageResponse.getContent();
+
+                                List<Bootcamp> otherBootcamps = allBootcamps.stream()
+                                        .filter(b -> !b.getId().equals(bootcamp.getId()))
+                                        .toList();
+
+                                boolean hasSharedAbilities = bootcamp.getAbilities().stream()
+                                        .anyMatch(ability ->
+                                                otherBootcamps.stream()
+                                                        .flatMap(b -> b.getAbilities().stream())
+                                                        .anyMatch(otherAbility -> Objects.equals(otherAbility.getId(), ability.getId()))
+                                        );
+
+                                if (hasSharedAbilities) {
+                                    log.info("El bootcamp {} tiene capacidades compartidas. Se eliminará solo el bootcamp, sin afectar capacidades ni tecnologías.", bootcampId);
+                                    return deleteBootcamp(context);
+                                } else {
+                                    log.info("El bootcamp {} tiene capacidades exclusivas. Se eliminarán capacidades y tecnologías asociadas.", bootcampId);
+                                    return deleteTechnologies(context)
+                                            .then(deleteAbilities(context))
+                                            .then(deleteBootcamp(context))
+                                            .doOnSuccess(v -> log.info("Saga completada exitosamente para bootcamp {}", bootcampId))
+                                            .onErrorResume(e -> {
+                                                log.error("Error en la saga de eliminación: {}", e.getMessage(), e);
+                                                return compensate(context, e);
+                                            });
+                                }
                             });
                 });
     }
+
+    private Mono<Void> deleteBootcamp(SagaContext context) {
+        return bootcampInputPort.deleteById(context.getBootcamp().getId())
+                .doOnSuccess(v -> {
+                    log.info("Bootcamp {} eliminado correctamente", context.getBootcamp().getId());
+                    context.setBootcampDeleted(true);
+                });
+    }
+
 
     private Mono<Void> deleteTechnologies(SagaContext context) {
         List<Long> techIds = context.getBootcamp().getAbilities().stream()
@@ -128,14 +159,6 @@ public class BootcampService {
                     log.info("Capacidades eliminadas correctamente: {}", abilityIds);
                     context.setAbilitiesDeleted(true);
                 }).then();
-    }
-
-    private Mono<Void> deleteBootcamp(SagaContext context) {
-        return bootcampInputPort.deleteById(context.getBootcamp().getId())
-                .doOnSuccess(v -> {
-                    log.info("Bootcamp {} eliminado correctamente", context.getBootcamp().getId());
-                    context.setBootcampDeleted(true);
-                });
     }
 
     private Mono<Void> compensate(SagaContext context, Throwable error) {
