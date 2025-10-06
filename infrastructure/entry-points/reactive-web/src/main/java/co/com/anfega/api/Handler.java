@@ -4,8 +4,6 @@ import co.com.anfega.api.dto.CreateBootcampDTO;
 import co.com.anfega.api.helper.api.BaseHandler;
 import co.com.anfega.api.mapper.BootcampDTOMapper;
 import co.com.anfega.api.service.BootcampService;
-import co.com.anfega.model.technology.Technology;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,8 +11,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
-
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -39,8 +35,14 @@ public class Handler extends BaseHandler {
         String sortBy = request.queryParam("sortBy").orElse("name");
         String direction = request.queryParam("direction").orElse("asc");
 
-        return bootcampService.listBootcamps(page, size, sortBy, direction,totalElements)
+        return bootcampService.listBootcamps(page, size, sortBy, direction, totalElements)
                 .flatMap(bootcamps -> ok(bootcamps.isEmpty() ? "No se encontraron bootcamps" : "Bootcamps encontrados", bootcamps));
+    }
+
+    public Mono<ServerResponse> listenDeleteBootcampById(ServerRequest request) {
+        Long id = Long.parseLong(request.pathVariable("id"));
+        return bootcampService.deleteBootcamp(id)
+                .then(ok("Bootcamp eliminado con exito"));
     }
 
 }

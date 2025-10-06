@@ -31,4 +31,14 @@ public class BootcampUseCase implements BootcampInputPort {
         return bootcamRepository.findAllPaginated(page, size, sortBy, direction, totalElements)
                 .switchIfEmpty(Mono.just(new PageResponse<>(List.of(), page, size, 0)));
     }
+
+    @Override
+    public Mono<Void> deleteById(Long id) {
+        return bootcamRepository.deleteById(id);
+    }
+
+    @Override
+    public Mono<Bootcamp> findById(Long id) {
+        return bootcamRepository.findById(id);
+    }
 }

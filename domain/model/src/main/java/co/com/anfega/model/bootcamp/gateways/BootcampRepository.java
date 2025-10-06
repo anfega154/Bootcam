@@ -8,4 +8,6 @@ public interface BootcampRepository {
     Mono<Bootcamp> save(Bootcamp bootcamp);
     Mono<PageResponse<Bootcamp>> findAllPaginated(int page, int size, String sortBy, String direction, int totalElements);
     Mono<Bootcamp> findByName(String name);
+    Mono<Void> deleteById(Long id);
+    Mono<Bootcamp> findById(Long id);
 }

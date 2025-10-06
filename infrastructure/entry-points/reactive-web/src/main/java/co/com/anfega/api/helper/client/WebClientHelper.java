@@ -48,10 +48,12 @@ public class WebClientHelper {
                 .bodyToMono(responseType);
     }
 
-    public <T> Mono<T> delete(String url, Map<String, String> headers, ParameterizedTypeReference<T> responseType) {
-        return webClient.delete()
+    public <T, B> Mono<T> delete(String url, Map<String, String> headers, B body, ParameterizedTypeReference<T> responseType) {
+        return webClient.method(org.springframework.http.HttpMethod.DELETE)
                 .uri(url)
                 .headers(httpHeaders -> setHeaders(httpHeaders, headers))
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(body))
                 .retrieve()
                 .bodyToMono(responseType);
     }

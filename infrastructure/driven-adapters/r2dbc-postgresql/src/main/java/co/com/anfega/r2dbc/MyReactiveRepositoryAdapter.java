@@ -62,6 +62,19 @@ public class MyReactiveRepositoryAdapter extends ReactiveAdapterOperations<
     }
 
     @Override
+    public Mono<Void> deleteById(Long id) {
+        return repository.deleteById(id)
+                .onErrorResume(e -> Mono.error(new IllegalStateException("Error eliminando bootcamp: " + e.getMessage())));
+    }
+
+    @Override
+    public Mono<Bootcamp> findById(Long id) {
+        return repository.findById(id)
+                .map(this::toBootcamp)
+                .onErrorResume(e -> Mono.error(new IllegalStateException("Error buscando bootcamp por ID: " + e.getMessage())));
+    }
+
+    @Override
     public Mono<PageResponse<Bootcamp>> findAllPaginated(int page, int size, String sortBy, String direction, int totalElements) {
         return repository.findAll()
                 .map(this::toBootcamp)
