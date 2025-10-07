@@ -22,6 +22,7 @@ adapters:
 routers:
   paths:
     bootcamp: "/api/v1/bootcamp"
+    bootcampValidate : "/api/v1/bootcamp/validate"
 management:
   endpoints:
     web:

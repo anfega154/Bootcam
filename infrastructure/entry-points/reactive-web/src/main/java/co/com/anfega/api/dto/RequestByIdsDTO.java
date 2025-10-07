@@ -9,6 +9,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class DeleteIdsDTO {
+public class RequestByIdsDTO {
     private List<Long> ids;
 }

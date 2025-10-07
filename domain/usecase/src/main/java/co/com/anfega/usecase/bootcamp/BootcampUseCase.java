@@ -5,6 +5,7 @@ import co.com.anfega.model.bootcamp.Bootcamp;
 import co.com.anfega.model.bootcamp.gateways.BootcampInputPort;
 import co.com.anfega.model.bootcamp.gateways.BootcampRepository;
 import co.com.anfega.model.common.PageResponse;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -40,5 +41,10 @@ public class BootcampUseCase implements BootcampInputPort {
     @Override
     public Mono<Bootcamp> findById(Long id) {
         return bootcamRepository.findById(id);
+    }
+
+    @Override
+    public Flux<Bootcamp> findByIdIn(List<Long> ids) {
+        return bootcamRepository.findByIdIn(ids);
     }
 }

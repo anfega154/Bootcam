@@ -1,6 +1,7 @@
 package co.com.anfega.api;
 
 import co.com.anfega.api.dto.CreateBootcampDTO;
+import co.com.anfega.api.dto.RequestByIdsDTO;
 import co.com.anfega.api.helper.api.BaseHandler;
 import co.com.anfega.api.mapper.BootcampDTOMapper;
 import co.com.anfega.api.service.BootcampService;
@@ -21,11 +22,16 @@ public class Handler extends BaseHandler {
     private final Validator validator;
     private final BootcampDTOMapper bootcampDTOMapper;
 
+    private static final String MSG_BOOTCAMP_CREATED = "Bootcamp creado con exito";
+    private static final String MSG_BOOTCAMP_DELETED = "Bootcamp eliminado con exito";
+    private static final String MSG_NO_BOOTCAMPS = "No se encontraron bootcamps";
+    private static final String MSG_BOOTCAMPS_FOUND = "Bootcamps encontrados";
+
     public Mono<ServerResponse> listenSaveBootcamp(ServerRequest request) {
         return bodyToMonoValidated(validator, request, CreateBootcampDTO.class)
                 .flatMap(bootcampService::save)
                 .map(bootcampDTOMapper::toResponse)
-                .flatMap(response -> created("Bootcamp creado con exito", response));
+                .flatMap(response -> created(MSG_BOOTCAMP_CREATED, response));
     }
 
     public Mono<ServerResponse> listenListBootcamps(ServerRequest request) {
@@ -36,13 +42,21 @@ public class Handler extends BaseHandler {
         String direction = request.queryParam("direction").orElse("asc");
 
         return bootcampService.listBootcamps(page, size, sortBy, direction, totalElements)
-                .flatMap(bootcamps -> ok(bootcamps.isEmpty() ? "No se encontraron bootcamps" : "Bootcamps encontrados", bootcamps));
+                .flatMap(bootcamps -> ok(bootcamps.isEmpty() ? MSG_NO_BOOTCAMPS : MSG_BOOTCAMPS_FOUND, bootcamps));
     }
 
     public Mono<ServerResponse> listenDeleteBootcampById(ServerRequest request) {
         Long id = Long.parseLong(request.queryParam("id").orElse("0"));
         return bootcampService.deleteBootcamp(id)
-                .then(ok("Bootcamp eliminado con exito"));
+                .then(ok(MSG_BOOTCAMP_DELETED));
+    }
+
+    public Mono<ServerResponse> listenGetBootcampByIds(ServerRequest request) {
+        return bodyToMonoValidated(validator, request, RequestByIdsDTO.class)
+                .flatMapMany(dto -> bootcampService.findByIdIn(dto.getIds()))
+                .map(bootcampDTOMapper::toResponse)
+                .collectList()
+                .flatMap(bootcamps -> ok(bootcamps.isEmpty() ? MSG_NO_BOOTCAMPS : MSG_BOOTCAMPS_FOUND, bootcamps));
     }
 
 }
