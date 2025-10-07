@@ -19,6 +19,7 @@ public class RouterRest {
     public RouterFunction<ServerResponse> routerFunction(Handler handler) {
         return route(POST(bootcampPath.getBootcamp()), handler::listenSaveBootcamp)
                 .andRoute(GET(bootcampPath.getBootcamp()), handler::listenListBootcamps)
-                .andRoute(DELETE(bootcampPath.getBootcamp()), handler::listenDeleteBootcampById);
+                .andRoute(DELETE(bootcampPath.getBootcamp()), handler::listenDeleteBootcampById)
+                .andRoute(POST(bootcampPath.getBootcampValidate()), handler::listenGetBootcampByIds);
     }
 }

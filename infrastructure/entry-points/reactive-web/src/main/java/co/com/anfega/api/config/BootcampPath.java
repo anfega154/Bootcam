@@ -9,4 +9,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "routers.paths")
 public class BootcampPath {
     private String bootcamp;
+    private String bootcampValidate;
 }

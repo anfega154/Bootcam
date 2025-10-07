@@ -2,8 +2,8 @@ package co.com.anfega.api.service;
 
 import co.com.anfega.api.dto.*;
 import co.com.anfega.api.helper.client.ApiResponse;
-import co.com.anfega.api.helper.client.SagaContext;
 import co.com.anfega.api.helper.client.WebClientHelper;
+import co.com.anfega.api.helper.service.SagaContext;
 import co.com.anfega.model.ability.Ability;
 import co.com.anfega.model.bootcamp.Bootcamp;
 import co.com.anfega.model.bootcamp.gateways.BootcampInputPort;
@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -95,6 +96,10 @@ public class BootcampService {
                 });
     }
 
+    public Flux<Bootcamp> findByIdIn(List<Long> ids) {
+        return bootcampInputPort.findByIdIn(ids);
+    }
+
     private Mono<Void> deleteBootcamp(SagaContext context) {
         return bootcampInputPort.deleteById(context.getBootcamp().getId())
                 .doOnSuccess(v -> {
@@ -117,7 +122,7 @@ public class BootcampService {
             return Mono.empty();
         }
 
-        DeleteIdsDTO deleteIdsDTO = new DeleteIdsDTO();
+        RequestByIdsDTO deleteIdsDTO = new RequestByIdsDTO();
         deleteIdsDTO.setIds(techIds);
 
         return webClientHelper.delete(
@@ -145,7 +150,7 @@ public class BootcampService {
             return Mono.empty();
         }
 
-        DeleteIdsDTO deleteIdsDTO = new DeleteIdsDTO();
+        RequestByIdsDTO deleteIdsDTO = new RequestByIdsDTO();
         deleteIdsDTO.setIds(abilityIds);
 
         return webClientHelper.delete(

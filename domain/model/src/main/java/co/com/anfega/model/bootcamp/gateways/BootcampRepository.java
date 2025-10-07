@@ -2,7 +2,10 @@ package co.com.anfega.model.bootcamp.gateways;
 
 import co.com.anfega.model.bootcamp.Bootcamp;
 import co.com.anfega.model.common.PageResponse;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 public interface BootcampRepository {
     Mono<Bootcamp> save(Bootcamp bootcamp);
@@ -10,4 +13,5 @@ public interface BootcampRepository {
     Mono<Bootcamp> findByName(String name);
     Mono<Void> deleteById(Long id);
     Mono<Bootcamp> findById(Long id);
+    Flux<Bootcamp> findByIdIn(List<Long> ids);
 }

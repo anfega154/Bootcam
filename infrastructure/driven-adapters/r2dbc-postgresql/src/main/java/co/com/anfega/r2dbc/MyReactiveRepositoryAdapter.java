@@ -9,6 +9,7 @@ import co.com.anfega.r2dbc.entity.BootcamEntity;
 import co.com.anfega.r2dbc.helper.ReactiveAdapterOperations;
 import org.reactivecommons.utils.ObjectMapper;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
@@ -75,6 +76,13 @@ public class MyReactiveRepositoryAdapter extends ReactiveAdapterOperations<
     }
 
     @Override
+    public Flux<Bootcamp> findByIdIn(List<Long> ids) {
+        return repository.findAllById(ids)
+                .map(this::toBootcamp)
+                .onErrorResume(e -> Mono.error(new IllegalStateException("Error buscando bootcamps por IDs: " + e.getMessage())));
+    }
+
+    @Override
     public Mono<PageResponse<Bootcamp>> findAllPaginated(int page, int size, String sortBy, String direction, int totalElements) {
         return repository.findAll()
                 .map(this::toBootcamp)
@@ -105,13 +113,11 @@ public class MyReactiveRepositoryAdapter extends ReactiveAdapterOperations<
                     .collect(Collectors.toCollection(ArrayList::new));
             return PaginationHelper.paginateAndSort(list, page, size, direction, a -> a.getAbilities().size());
         }
-        switch (sortBy == null ? "" : sortBy.toLowerCase()) {
-            case "name":
-                return PaginationHelper.paginateAndSort(list, page, size, direction, Bootcamp::getName);
-            case "description":
-                return PaginationHelper.paginateAndSort(list, page, size, direction, Bootcamp::getDescription);
-            default:
-                return PaginationHelper.paginateAndSort(list, page, size, direction, a -> String.valueOf(a.getId()));
-        }
+        return switch (sortBy == null ? "" : sortBy.toLowerCase()) {
+            case "name" -> PaginationHelper.paginateAndSort(list, page, size, direction, Bootcamp::getName);
+            case "description" ->
+                    PaginationHelper.paginateAndSort(list, page, size, direction, Bootcamp::getDescription);
+            default -> PaginationHelper.paginateAndSort(list, page, size, direction, a -> String.valueOf(a.getId()));
+        };
     }
 }
