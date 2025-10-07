@@ -1,7 +1,11 @@
 package co.com.anfega.api.events;
 
+import co.com.anfega.api.dto.AbilityDTO;
+import co.com.anfega.api.dto.TechnologyDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.*;
+
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -13,6 +17,8 @@ public class BootcampCreatedEvent {
     private String description;
     private String launchDate;
     private String duration;
+    private List<AbilityDTO> abilities;
+    private List<TechnologyDTO> technologies;
     private int capabilitiesCount;
     private int technologiesCount;
     private int participantsCount;

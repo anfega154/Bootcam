@@ -50,7 +50,32 @@ public class BootcampService {
                                     .name(saved.getName())
                                     .description(saved.getDescription())
                                     .launchDate(String.valueOf(saved.getReleaseDate()))
-                                    .duration(String.valueOf(saved.getDuration()) + " Meses")
+                                    .duration(saved.getDuration() + " Meses")
+                                    .abilities(enrichedBootcamp.getAbilities().stream()
+                                            .map(a -> AbilityDTO.builder()
+                                                    .id(a.getId())
+                                                    .name(a.getName())
+                                                    .description(a.getDescription())
+                                                    .technologies(a.getTechnologies() != null
+                                                            ? a.getTechnologies().stream()
+                                                            .map(t -> TechnologyDTO.builder()
+                                                                    .id(t.getId())
+                                                                    .name(t.getName())
+                                                                    .description(t.getDescription())
+                                                                    .build())
+                                                            .toList()
+                                                            : List.of())
+                                                    .build())
+                                            .toList())
+                                    .technologies(enrichedBootcamp.getAbilities().stream()
+                                            .flatMap(a -> a.getTechnologies().stream())
+                                            .distinct()
+                                            .map(t -> TechnologyDTO.builder()
+                                                    .id(t.getId())
+                                                    .name(t.getName())
+                                                    .description(t.getDescription())
+                                                    .build())
+                                            .toList())
                                     .capabilitiesCount(enrichedBootcamp.getAbilities().size())
                                     .technologiesCount(enrichedBootcamp.getAbilities().stream()
                                             .mapToInt(a -> a.getTechnologies() != null ? a.getTechnologies().size() : 0)
@@ -71,6 +96,7 @@ public class BootcampService {
                         })
                 );
     }
+
 
     public Mono<List<Bootcamp>> listBootcamps(int page, int size, String sortBy, String direction, int totalElements) {
         return bootcampInputPort.findAllPaginated(page, size, sortBy, direction, totalElements)
