@@ -34,4 +34,8 @@ management:
         enabled: true
 cors:
   allowed-origins: "http://localhost:4200,http://localhost:8080"
+aws:
+  region: us-east-1
+  sqs:
+    queue-url: https://sqs.us-east-2.amazonaws.com/502456973871/bootcamp-events-queue
 

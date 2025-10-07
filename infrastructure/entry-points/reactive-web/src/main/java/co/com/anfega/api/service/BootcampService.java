@@ -1,6 +1,9 @@
 package co.com.anfega.api.service;
 
 import co.com.anfega.api.dto.*;
+import co.com.anfega.api.events.BootcampCreatedEvent;
+import co.com.anfega.api.events.BootcampEventPublisher;
+import co.com.anfega.api.events.BootcampEventSerializationException;
 import co.com.anfega.api.helper.client.ApiResponse;
 import co.com.anfega.api.helper.client.WebClientHelper;
 import co.com.anfega.api.helper.service.SagaContext;
@@ -25,6 +28,7 @@ public class BootcampService {
 
     private final BootcampInputPort bootcampInputPort;
     private final WebClientHelper webClientHelper;
+    private final BootcampEventPublisher publisher;
 
     public Mono<Bootcamp> save(CreateBootcampDTO createBootcampDTO) {
         Bootcamp bootcamp = new Bootcamp();
@@ -34,11 +38,38 @@ public class BootcampService {
         bootcamp.setDuration(createBootcampDTO.getDuration());
 
         return getAbilitiesByName(createBootcampDTO.getAbilities())
-                .flatMap(abilities -> {
+                .map(abilities -> {
                     bootcamp.setAbilities(abilities);
-                    return bootcampInputPort.save(bootcamp);
-                });
+                    List<Bootcamp> enriched = enrichBootcamps(List.of(bootcamp), abilities);
+                    return enriched.getFirst();
+                })
+                .flatMap(enrichedBootcamp -> bootcampInputPort.save(enrichedBootcamp)
+                        .flatMap(saved -> {
+                            BootcampCreatedEvent event = BootcampCreatedEvent.builder()
+                                    .id(saved.getId())
+                                    .name(saved.getName())
+                                    .description(saved.getDescription())
+                                    .launchDate(String.valueOf(saved.getReleaseDate()))
+                                    .duration(String.valueOf(saved.getDuration()) + " Meses")
+                                    .capabilitiesCount(enrichedBootcamp.getAbilities().size())
+                                    .technologiesCount(enrichedBootcamp.getAbilities().stream()
+                                            .mapToInt(a -> a.getTechnologies() != null ? a.getTechnologies().size() : 0)
+                                            .sum())
+                                    .participantsCount(0)
+                                    .build();
 
+                            try {
+                                return publisher.publishBootcampCreatedEvent(event)
+                                        .onErrorResume(e -> {
+                                            log.error("Error al publicar el evento BootcampCreatedEvent: {}", e.getMessage(), e);
+                                            return Mono.empty();
+                                        })
+                                        .thenReturn(saved);
+                            } catch (BootcampEventSerializationException ignored) {
+                                return Mono.just(saved);
+                            }
+                        })
+                );
     }
 
     public Mono<List<Bootcamp>> listBootcamps(int page, int size, String sortBy, String direction, int totalElements) {
