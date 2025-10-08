@@ -4,8 +4,6 @@ import co.com.anfega.api.dto.*;
 import co.com.anfega.api.events.BootcampCreatedEvent;
 import co.com.anfega.api.events.BootcampEventPublisher;
 import co.com.anfega.api.events.BootcampEventSerializationException;
-import co.com.anfega.api.helper.client.ApiResponse;
-import co.com.anfega.api.helper.client.WebClientHelper;
 import co.com.anfega.api.helper.service.SagaContext;
 import co.com.anfega.model.ability.Ability;
 import co.com.anfega.model.bootcamp.Bootcamp;
@@ -17,6 +15,8 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import co.com.anfega.consumer.client.WebClientHelper;
+import co.com.anfega.consumer.ApiResponse;
 
 import java.util.List;
 import java.util.Objects;

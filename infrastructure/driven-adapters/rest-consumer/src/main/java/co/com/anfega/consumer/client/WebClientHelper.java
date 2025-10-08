@@ -1,4 +1,4 @@
-package co.com.anfega.api.helper.client;
+package co.com.anfega.consumer.client;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;

@@ -22,7 +22,7 @@ adapters:
 routers:
   paths:
     bootcamp: "/api/v1/bootcamp"
-    bootcampValidate : "/api/v1/bootcamp/validate"
+    bootcampValidate: "/api/v1/bootcamp/validate"
 management:
   endpoints:
     web:
@@ -32,10 +32,37 @@ management:
     health:
       probes:
         enabled: true
+  health:
+    circuitbreakers:
+      enabled: true
 cors:
   allowed-origins: "http://localhost:4200,http://localhost:8080"
 aws:
-  region: us-east-1
+  region: "us-east-1"
   sqs:
-    queue-url: https://sqs.us-east-2.amazonaws.com/502456973871/bootcamp-events-queue
-
+    queue-url: "https://sqs.us-east-2.amazonaws.com/502456973871/bootcamp-events-queue"
+adapter:
+  restconsumer:
+    timeout: 5000
+    url: "http://localhost:8080"
+resilience4j:
+  circuitbreaker:
+    instances:
+      testGet:
+        registerHealthIndicator: true
+        failureRateThreshold: 50
+        slowCallRateThreshold: 50
+        slowCallDurationThreshold: "2s"
+        permittedNumberOfCallsInHalfOpenState: 3
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 10
+        waitDurationInOpenState: "10s"
+      testPost:
+        registerHealthIndicator: true
+        failureRateThreshold: 50
+        slowCallRateThreshold: 50
+        slowCallDurationThreshold: "2s"
+        permittedNumberOfCallsInHalfOpenState: 3
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 10
+        waitDurationInOpenState: "10s"
