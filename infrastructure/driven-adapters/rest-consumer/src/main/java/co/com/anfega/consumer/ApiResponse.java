@@ -1,8 +1,6 @@
-package co.com.anfega.api.helper.client;
+package co.com.anfega.consumer;
 
 import lombok.Data;
-
-import java.util.List;
 
 @Data
 public class ApiResponse<T> {

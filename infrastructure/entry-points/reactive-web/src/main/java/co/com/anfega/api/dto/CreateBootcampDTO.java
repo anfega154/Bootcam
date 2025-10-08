@@ -15,5 +15,5 @@ public class CreateBootcampDTO {
     private LocalDate releaseDate;
     private int duration;
     @Size(min = 1, max = 4 , message = "Debe tener minimo 1 y maximo 4 habilidades")
-    private List<String> abilities;
+    private List<Long> abilities;
 }

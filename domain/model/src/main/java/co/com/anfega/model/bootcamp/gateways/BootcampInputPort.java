@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface BootcampInputPort {
     Mono<Bootcamp> save(Bootcamp bootcamp);
-    Mono<PageResponse<Bootcamp>> findAllPaginated(int page, int size, String sortBy, String direction, int totalElements);
+    Mono<PageResponse<Bootcamp>> findAllPaginated(int page, int size, String sortBy, String direction);
     Mono<Void> deleteById(Long id);
     Mono<Bootcamp> findById(Long id);
     Flux<Bootcamp> findByIdIn(List<Long> ids);

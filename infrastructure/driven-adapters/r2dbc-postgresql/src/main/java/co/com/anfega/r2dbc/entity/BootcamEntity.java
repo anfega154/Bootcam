@@ -25,7 +25,4 @@ public class BootcamEntity {
 
     @Column("duracion")
     private int duration;
-
-    @Column("capacidades")
-    private String abilities;
 }

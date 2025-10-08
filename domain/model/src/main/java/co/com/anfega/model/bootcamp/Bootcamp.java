@@ -19,6 +19,14 @@ public class Bootcamp {
 
     }
 
+    public Bootcamp(Long id,String name, String description, LocalDate releaseDate, int duration) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.releaseDate = releaseDate;
+        this.duration = duration;
+    }
+
     public Bootcamp(String name, String description, LocalDate releaseDate, int duration, List<Ability> abilities) {
         this.name = name;
         this.description = description;

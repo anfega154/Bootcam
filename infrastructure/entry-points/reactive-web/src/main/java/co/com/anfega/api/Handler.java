@@ -37,11 +37,10 @@ public class Handler extends BaseHandler {
     public Mono<ServerResponse> listenListBootcamps(ServerRequest request) {
         int page = Integer.parseInt(request.queryParam("page").orElse("0"));
         int size = Integer.parseInt(request.queryParam("size").orElse("10"));
-        int totalElements = Integer.parseInt(request.queryParam("totalElements").orElse("0"));
         String sortBy = request.queryParam("sortBy").orElse("name");
         String direction = request.queryParam("direction").orElse("asc");
 
-        return bootcampService.listBootcamps(page, size, sortBy, direction, totalElements)
+        return bootcampService.listBootcamps(page, size, sortBy, direction)
                 .flatMap(bootcamps -> ok(bootcamps.isEmpty() ? MSG_NO_BOOTCAMPS : MSG_BOOTCAMPS_FOUND, bootcamps));
     }
 

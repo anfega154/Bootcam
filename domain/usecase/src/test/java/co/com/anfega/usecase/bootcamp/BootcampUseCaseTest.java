@@ -1,5 +1,6 @@
 package co.com.anfega.usecase.bootcamp;
 
+import co.com.anfega.model.abilitybootcamp.gateways.AbilityBootcampRepository;
 import co.com.anfega.model.bootcamp.Bootcamp;
 import co.com.anfega.model.bootcamp.gateways.BootcampRepository;
 import co.com.anfega.model.common.PageResponse;
@@ -17,12 +18,14 @@ import static org.mockito.Mockito.*;
 class BootcampUseCaseTest {
 
     private BootcampRepository repository;
+    private AbilityBootcampRepository abilityBootcampRepository;
     private BootcampUseCase useCase;
 
     @BeforeEach
     void setUp() {
         repository = Mockito.mock(BootcampRepository.class);
-        useCase = new BootcampUseCase(repository);
+        abilityBootcampRepository = Mockito.mock(AbilityBootcampRepository.class);
+        useCase = new BootcampUseCase(repository, abilityBootcampRepository);
     }
 
     @Test
@@ -68,27 +71,27 @@ class BootcampUseCaseTest {
         PageResponse<Bootcamp> response =
                 new PageResponse<>(List.of(bootcamp), 0, 10, 1);
 
-        when(repository.findAllPaginated(0, 10, "id", "asc", 1))
+        when(repository.findAllPaginated(0, 10, "id", "asc"))
                 .thenReturn(Mono.just(response));
 
-        StepVerifier.create(useCase.findAllPaginated(0, 10, "id", "asc", 1))
+        StepVerifier.create(useCase.findAllPaginated(0, 10, "id", "asc"))
                 .expectNextMatches(r -> r.getContent().size() == 1 &&
                         r.getContent().get(0).getName().equals("Java"))
                 .verifyComplete();
 
-        verify(repository).findAllPaginated(0, 10, "id", "asc", 1);
+        verify(repository).findAllPaginated(0, 10, "id", "asc");
     }
 
     @Test
     void findAllPaginated_ShouldReturnEmptyPage_WhenRepositoryIsEmpty() {
-        when(repository.findAllPaginated(anyInt(), anyInt(), anyString(), anyString(), anyInt()))
+        when(repository.findAllPaginated(anyInt(), anyInt(), anyString(), anyString()))
                 .thenReturn(Mono.empty());
 
-        StepVerifier.create(useCase.findAllPaginated(0, 10, "id", "asc", 0))
+        StepVerifier.create(useCase.findAllPaginated(0, 10, "id", "asc"))
                 .expectNextMatches(r -> r.getContent().isEmpty() && r.getTotalElements() == 0)
                 .verifyComplete();
 
-        verify(repository).findAllPaginated(0, 10, "id", "asc", 0);
+        verify(repository).findAllPaginated(0, 10, "id", "asc");
     }
 
     @Test
