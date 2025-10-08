@@ -28,7 +28,6 @@ public class BootcampService {
 
     private final BootcampInputPort bootcampInputPort;
     private final WebClientHelper webClientHelper;
-    private final BootcampEventPublisher publisher;
 
     public Mono<Bootcamp> save(CreateBootcampDTO createBootcampDTO) {
         Bootcamp bootcamp = new Bootcamp();
@@ -43,58 +42,7 @@ public class BootcampService {
                     List<Bootcamp> enriched = enrichBootcamps(List.of(bootcamp), abilities);
                     return enriched.getFirst();
                 })
-                .flatMap(enrichedBootcamp -> bootcampInputPort.save(enrichedBootcamp)
-                        .flatMap(saved -> {
-                            BootcampCreatedEvent event = BootcampCreatedEvent.builder()
-                                    .id(saved.getId())
-                                    .name(saved.getName())
-                                    .description(saved.getDescription())
-                                    .launchDate(String.valueOf(saved.getReleaseDate()))
-                                    .duration(saved.getDuration() + " Días")
-                                    .abilities(enrichedBootcamp.getAbilities().stream()
-                                            .map(a -> AbilityDTO.builder()
-                                                    .id(a.getId())
-                                                    .name(a.getName())
-                                                    .description(a.getDescription())
-                                                    .technologies(a.getTechnologies() != null
-                                                            ? a.getTechnologies().stream()
-                                                            .map(t -> TechnologyDTO.builder()
-                                                                    .id(t.getId())
-                                                                    .name(t.getName())
-                                                                    .description(t.getDescription())
-                                                                    .build())
-                                                            .toList()
-                                                            : List.of())
-                                                    .build())
-                                            .toList())
-                                    .technologies(enrichedBootcamp.getAbilities().stream()
-                                            .flatMap(a -> a.getTechnologies().stream())
-                                            .distinct()
-                                            .map(t -> TechnologyDTO.builder()
-                                                    .id(t.getId())
-                                                    .name(t.getName())
-                                                    .description(t.getDescription())
-                                                    .build())
-                                            .toList())
-                                    .capabilitiesCount(enrichedBootcamp.getAbilities().size())
-                                    .technologiesCount(enrichedBootcamp.getAbilities().stream()
-                                            .mapToInt(a -> a.getTechnologies() != null ? a.getTechnologies().size() : 0)
-                                            .sum())
-                                    .participantsCount(0)
-                                    .build();
-
-                            try {
-                                return publisher.publishBootcampCreatedEvent(event)
-                                        .onErrorResume(e -> {
-                                            log.error("Error al publicar el evento BootcampCreatedEvent: {}", e.getMessage(), e);
-                                            return Mono.empty();
-                                        })
-                                        .thenReturn(saved);
-                            } catch (BootcampEventSerializationException ignored) {
-                                return Mono.just(saved);
-                            }
-                        })
-                );
+                .flatMap(bootcampInputPort::save);
     }
 
 
