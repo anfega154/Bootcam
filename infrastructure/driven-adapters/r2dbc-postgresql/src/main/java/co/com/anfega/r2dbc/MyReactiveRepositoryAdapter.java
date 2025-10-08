@@ -12,10 +12,7 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Repository
@@ -44,10 +41,6 @@ public class MyReactiveRepositoryAdapter extends ReactiveAdapterOperations<
                     entity.setDescription(bootcamp.getDescription());
                     entity.setReleaseDate(bootcamp.getReleaseDate());
                     entity.setDuration(bootcamp.getDuration());
-                    String abilitiesStr = String.join(",", bootcamp.getAbilities().stream()
-                            .map(Ability::getName)
-                            .toList());
-                    entity.setAbilities(abilitiesStr);
 
                     return repository.save(entity)
                             .map(this::toBootcamp)
@@ -83,35 +76,42 @@ public class MyReactiveRepositoryAdapter extends ReactiveAdapterOperations<
     }
 
     @Override
-    public Mono<PageResponse<Bootcamp>> findAllPaginated(int page, int size, String sortBy, String direction, int totalElements) {
+    public Mono<PageResponse<Bootcamp>> findAllPaginated(int page, int size, String sortBy, String direction) {
         return repository.findAll()
                 .map(this::toBootcamp)
                 .collectList()
-                .map(list -> paginateAndSortBootcamps(list, page, size, sortBy, direction, totalElements));
+                .map(list -> paginateAndSortBootcamps(list, page, size, sortBy, direction));
     }
 
     private Bootcamp toBootcamp(BootcamEntity entity) {
-        List<Ability> abilities = (entity.getAbilities() != null && !entity.getAbilities().isEmpty()) ?
-                Arrays.stream(entity.getAbilities().split(","))
-                        .map(name -> new Ability(name, null, null))
-                        .toList() : Collections.emptyList();
         return new Bootcamp(
                 entity.getId(),
                 entity.getName(),
                 entity.getDescription(),
                 entity.getReleaseDate(),
-                entity.getDuration(),
-                abilities
+                entity.getDuration()
         );
     }
 
     private PageResponse<Bootcamp> paginateAndSortBootcamps(
-            List<Bootcamp> list, int page, int size, String sortBy, String direction, int totalElements) {
+            List<Bootcamp> list, int page, int size, String sortBy, String direction) {
+
+        if (sortBy == null) sortBy = "";
+        sortBy = sortBy.trim().toLowerCase();
+
         if ("abilities".equalsIgnoreCase(sortBy)) {
-            list = list.stream()
-                    .filter(a -> a.getAbilities().size() == totalElements)
-                    .collect(Collectors.toCollection(ArrayList::new));
-            return PaginationHelper.paginateAndSort(list, page, size, direction, a -> a.getAbilities().size());
+            List<Bootcamp> copy = new ArrayList<>(list == null ? Collections.emptyList() : list);
+
+            Comparator<Bootcamp> cmp = Comparator.comparingInt(
+                    a -> a.getAbilities() == null ? 0 : a.getAbilities().size()
+            );
+
+            if ("desc".equalsIgnoreCase(direction)) {
+                cmp = cmp.reversed();
+            }
+
+            copy.sort(cmp);
+            return PageResponse.of(copy, page, size);
         }
         return switch (sortBy == null ? "" : sortBy.toLowerCase()) {
             case "name" -> PaginationHelper.paginateAndSort(list, page, size, direction, Bootcamp::getName);

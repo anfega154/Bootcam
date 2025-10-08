@@ -11,5 +11,5 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AbilityRequestDTO implements Serializable {
-    private List<String> names;
+    private List<Long> ids;
 }

@@ -37,7 +37,7 @@ public class BootcampService {
         bootcamp.setReleaseDate(createBootcampDTO.getReleaseDate());
         bootcamp.setDuration(createBootcampDTO.getDuration());
 
-        return getAbilitiesByName(createBootcampDTO.getAbilities())
+        return getAbilitiesByIds(createBootcampDTO.getAbilities())
                 .map(abilities -> {
                     bootcamp.setAbilities(abilities);
                     List<Bootcamp> enriched = enrichBootcamps(List.of(bootcamp), abilities);
@@ -50,7 +50,7 @@ public class BootcampService {
                                     .name(saved.getName())
                                     .description(saved.getDescription())
                                     .launchDate(String.valueOf(saved.getReleaseDate()))
-                                    .duration(saved.getDuration() + " Meses")
+                                    .duration(saved.getDuration() + " Días")
                                     .abilities(enrichedBootcamp.getAbilities().stream()
                                             .map(a -> AbilityDTO.builder()
                                                     .id(a.getId())
@@ -98,16 +98,16 @@ public class BootcampService {
     }
 
 
-    public Mono<List<Bootcamp>> listBootcamps(int page, int size, String sortBy, String direction, int totalElements) {
-        return bootcampInputPort.findAllPaginated(page, size, sortBy, direction, totalElements)
+    public Mono<List<Bootcamp>> listBootcamps(int page, int size, String sortBy, String direction) {
+        return bootcampInputPort.findAllPaginated(page, size, sortBy, direction)
                 .flatMap(pageResult -> {
-                    List<String> abilityNames = pageResult.getContent().stream()
+                    List<Long> abilityIds = pageResult.getContent().stream()
                             .flatMap(bootcamp -> bootcamp.getAbilities().stream())
-                            .map(Ability::getName)
+                            .map(Ability::getId)
                             .distinct()
                             .toList();
 
-                    return getAbilitiesByName(abilityNames)
+                    return getAbilitiesByIds(abilityIds)
                             .map(abilities -> enrichBootcamps(pageResult.getContent(), abilities));
                 });
     }
@@ -118,9 +118,22 @@ public class BootcampService {
         return bootcampInputPort.findById(bootcampId)
                 .switchIfEmpty(Mono.error(new RuntimeException("Bootcamp no encontrado")))
                 .flatMap(bootcamp -> {
+                    List<Long> abilityIds = bootcamp.getAbilities().stream()
+                            .map(Ability::getId)
+                            .filter(Objects::nonNull)
+                            .distinct()
+                            .toList();
+
+                    return getAbilitiesByIds(abilityIds)
+                            .map(abilities -> {
+                                List<Bootcamp> enriched = enrichBootcamps(List.of(bootcamp), abilities);
+                                return enriched.getFirst();
+                            });
+                })
+                .flatMap(bootcamp -> {
                     context.setBootcamp(bootcamp);
 
-                    return bootcampInputPort.findAllPaginated(0, Integer.MAX_VALUE, null, null, 0)
+                    return bootcampInputPort.findAllPaginated(0, Integer.MAX_VALUE, null, null)
                             .flatMap(pageResponse -> {
                                 List<Bootcamp> allBootcamps = pageResponse.getContent();
 
@@ -132,7 +145,8 @@ public class BootcampService {
                                         .anyMatch(ability ->
                                                 otherBootcamps.stream()
                                                         .flatMap(b -> b.getAbilities().stream())
-                                                        .anyMatch(otherAbility -> Objects.equals(otherAbility.getId(), ability.getId()))
+                                                        .anyMatch(otherAbility ->
+                                                                Objects.equals(otherAbility.getId(), ability.getId()))
                                         );
 
                                 if (hasSharedAbilities) {
@@ -153,8 +167,21 @@ public class BootcampService {
                 });
     }
 
+
     public Flux<Bootcamp> findByIdIn(List<Long> ids) {
-        return bootcampInputPort.findByIdIn(ids);
+        return bootcampInputPort.findByIdIn(ids)
+                .collectList()
+                .flatMapMany(bootcamps -> {
+                    List<Long> abilityIds = bootcamps.stream()
+                            .flatMap(b -> b.getAbilities().stream())
+                            .map(Ability::getId)
+                            .distinct()
+                            .toList();
+
+                    return getAbilitiesByIds(abilityIds)
+                            .map(abilities -> enrichBootcamps(bootcamps, abilities))
+                            .flatMapMany(Flux::fromIterable);
+                });
     }
 
     private Mono<Void> deleteBootcamp(SagaContext context) {
@@ -183,7 +210,7 @@ public class BootcampService {
         deleteIdsDTO.setIds(techIds);
 
         return webClientHelper.delete(
-                        "http://localhost:8080/api/v1/tecnologias",
+                        "http://localhost:8088/api/v1/tecnologias",
                         null,
                         deleteIdsDTO,
                         new ParameterizedTypeReference<ApiResponse<Void>>() {
@@ -265,7 +292,7 @@ public class BootcampService {
         if (context.isTechDeleted()) {
             log.info("Compensando tecnologías eliminadas...");
             restoreTech = webClientHelper.post(
-                    "http://localhost:8080/api/v1/tecnologias",
+                    "http://localhost:8088/api/v1/tecnologias",
                     null,
                     techDTOs,
                     new ParameterizedTypeReference<ApiResponse<List<Technology>>>() {
@@ -281,11 +308,12 @@ public class BootcampService {
         bootcamps.forEach(bootcamp -> {
             List<Ability> enrichedAbilities = bootcamp.getAbilities().stream()
                     .map(ability -> abilities.stream()
-                            .filter(existingAbility -> existingAbility.getName()
-                                    .equalsIgnoreCase(ability.getName()))
+                            .filter(existingAbility -> existingAbility.getId()
+                                    .equals(ability.getId()))
                             .findFirst()
                             .map(match -> {
                                 ability.setId(match.getId());
+                                ability.setName(match.getName());
                                 ability.setDescription(match.getDescription());
                                 ability.setTechnologies(match.getTechnologies());
                                 return ability;
@@ -299,9 +327,9 @@ public class BootcampService {
     }
 
 
-    private Mono<List<Ability>> getAbilitiesByName(List<String> names) {
-        AbilityRequestDTO request = new AbilityRequestDTO(names);
-        if (names == null || names.isEmpty()) {
+    private Mono<List<Ability>> getAbilitiesByIds(List<Long> ids) {
+        AbilityRequestDTO request = new AbilityRequestDTO(ids);
+        if (ids == null || ids.isEmpty()) {
             return Mono.just(List.of());
         }
         return webClientHelper.post(
